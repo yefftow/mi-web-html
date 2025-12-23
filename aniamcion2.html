@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoSavers 3D - Mapa Real de Fusa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
+
+        :root {
+            --verde-primario: #2D5A27;
+            --verde-secundario: #4CAF50;
+            --verde-fondo: #F0F7EF;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--verde-fondo);
+            color: #1a2e1a;
+            overflow: hidden;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 24px;
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 100vh;
+            cursor: grab;
+        }
+
+        #canvas-container:active {
+            cursor: grabbing;
+        }
+
+        .ui-overlay {
+            position: absolute;
+            top: 100px;
+            left: 150px;
+            max-width: 400px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .info-panel {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            width: 320px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.4s ease;
+            pointer-events: auto;
+            z-index: 20;
+        }
+
+        .info-panel.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .badge-fusa {
+            background: var(--verde-primario);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="fixed w-full z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center glass-card px-8 py-3 shadow-lg">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-[#2D5A27] rounded-xl flex items-center justify-center shadow-lg">
+                    <svg viewBox="0 0 24 24" class="w-6 h-6 fill-white">
+                        <path d="M12 2L4.5 20.29L5.21 21L12 18L18.79 21L19.5 20.29L12 2Z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="font-bold text-xl tracking-tight text-[#2D5A27] leading-none">EcoSavers</h1>
+                    <span class="text-[10px] font-semibold uppercase tracking-widest text-emerald-600">Fusagasugá</span>
+                </div>
+            </div>
+            <button class="bg-[#2D5A27] text-white px-6 py-2 rounded-full text-sm font-bold shadow-md hover:scale-105 transition-all">
+                Iniciar Sesión
+            </button>
+        </div>
+    </nav>
+
+    <!-- UI Text Overlay -->
+    <div class="ui-overlay space-y-4">
+        <span class="badge-fusa">Mapa Geográfico 3D</span>
+        <h2 class="text-6xl font-extrabold text-[#2D5A27] leading-tight">
+            Explora <br><span class="text-emerald-500">Tu Ciudad</span>
+        </h2>
+        <p class="text-gray-600 text-lg">
+            Gira el mapa para explorar los puntos de reciclaje. Todos los puntos mantienen su brillo constante para una mejor visibilidad.
+        </p>
+    </div>
+
+    <!-- 3D Scene -->
+    <div id="canvas-container"></div>
+
+    <!-- Info Panel -->
+    <div id="info-panel" class="info-panel glass-card p-6 shadow-2xl border-emerald-200">
+        <div class="flex items-start gap-4">
+            <div class="bg-emerald-600 p-2 rounded-xl shadow-lg">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                </svg>
+            </div>
+            <div>
+                <h4 id="point-title" class="font-bold text-[#2D5A27] text-lg">Selecciona un punto</h4>
+                <p id="point-desc" class="text-sm text-gray-500 mt-1">Haz clic en los marcadores verdes para ver detalles.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let scene, camera, renderer, pivot, globe;
+        let markers = [];
+        const container = document.getElementById('canvas-container');
+        const infoPanel = document.getElementById('info-panel');
+        const pointTitle = document.getElementById('point-title');
+        const pointDesc = document.getElementById('point-desc');
+
+        let autoRotationDirection = 1;
+        const rotationLimitY = 0.5; 
+        const rotationLimitX = 0.3;
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 7;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            // Aumentamos la luz ambiental para que todo sea visible
+            const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+            scene.add(ambientLight);
+
+            // Añadimos una luz que sigue a la cámara para que el frente siempre esté iluminado
+            const camLight = new THREE.PointLight(0xffffff, 0.5);
+            camera.add(camLight);
+            scene.add(camera);
+
+            pivot = new THREE.Group();
+            scene.add(pivot);
+
+            const radius = 2.2;
+
+            // 1. Esfera Base con material que no se oscurece tanto
+            const globeGeo = new THREE.SphereGeometry(radius, 64, 64);
+            const globeMat = new THREE.MeshLambertMaterial({
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.9,
+            });
+            globe = new THREE.Mesh(globeGeo, globeMat);
+            pivot.add(globe);
+
+            // 2. Mapa de Fusa con material Basic (ignora sombras) para brillo constante
+            const fusaShape = new THREE.Shape();
+            fusaShape.moveTo(0.4, 0.8);
+            fusaShape.bezierCurveTo(0.6, 0.9, 0.8, 0.8, 0.9, 0.6);
+            fusaShape.bezierCurveTo(1.1, 0.5, 1.2, 0.3, 1.1, 0);
+            fusaShape.bezierCurveTo(1.0, -0.3, 0.8, -0.6, 0.6, -0.8);
+            fusaShape.bezierCurveTo(0.4, -0.9, 0.1, -0.8, -0.1, -0.5);
+            fusaShape.bezierCurveTo(-0.3, -0.3, -0.4, 0, -0.2, 0.4);
+            fusaShape.bezierCurveTo(0, 0.7, 0.2, 0.8, 0.4, 0.8);
+
+            const shapeGeo = new THREE.ShapeGeometry(fusaShape);
+            const shapeMat = new THREE.MeshBasicMaterial({ 
+                color: 0x2D5A27, 
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.85
+            });
+            const fusaMap = new THREE.Mesh(shapeGeo, shapeMat);
+            
+            fusaMap.position.z = radius + 0.02;
+            fusaMap.scale.set(1.2, 1.2, 1.2);
+            pivot.add(fusaMap);
+
+            // 3. Marcadores con MeshBasicMaterial para que siempre brillen igual
+            addMarker(radius, 0.6, 0.2, "Plaza Mayor", "Centro histórico. Recolección de plásticos.");
+            addMarker(radius, 0.1, 0.5, "Barrio Pekín", "Punto ecológico de residuos orgánicos.");
+            addMarker(radius, 0, -0.2, "Parque de las Flores", "Estación de compostaje.");
+            addMarker(radius, 0.9, -0.1, "Novillero", "Recolección de envases de vidrio.");
+            addMarker(radius, 0.5, -0.4, "Terminal Fusa", "Reciclaje de electrónicos y pilas.");
+
+            animate();
+        }
+
+        function addMarker(radius, x, y, title, desc) {
+            const markerGeo = new THREE.SphereGeometry(0.06, 16, 16);
+            // Usamos MeshBasicMaterial para que el color sea constante y brillante
+            const markerMat = new THREE.MeshBasicMaterial({ color: 0x4CAF50 });
+            const marker = new THREE.Mesh(markerGeo, markerMat);
+
+            marker.position.set(x, y, radius + 0.05);
+            marker.userData = { title, desc };
+            
+            const haloGeo = new THREE.RingGeometry(0.08, 0.11, 32);
+            const haloMat = new THREE.MeshBasicMaterial({ color: 0x4CAF50, transparent: true, opacity: 0.5, side: THREE.DoubleSide });
+            const halo = new THREE.Mesh(haloGeo, haloMat);
+            halo.position.copy(marker.position);
+            
+            pivot.add(marker);
+            pivot.add(halo);
+            markers.push({ mesh: marker, halo: halo });
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            if (!isDragging) {
+                pivot.rotation.y += 0.001 * autoRotationDirection;
+                if (Math.abs(pivot.rotation.y) > rotationLimitY) {
+                    autoRotationDirection *= -1;
+                }
+            }
+
+            markers.forEach(m => {
+                const s = 1 + Math.sin(Date.now() * 0.005) * 0.3;
+                m.halo.scale.set(s, s, s);
+                m.halo.lookAt(camera.position);
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        let isDragging = false;
+        let prevMouse = { x: 0, y: 0 };
+
+        container.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            raycast(e);
+        });
+        window.addEventListener('mouseup', () => isDragging = false);
+        window.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const deltaY = (e.clientX - prevMouse.x) * 0.005;
+                const deltaX = (e.clientY - prevMouse.y) * 0.005;
+
+                const newRotY = pivot.rotation.y + deltaY;
+                const newRotX = pivot.rotation.x + deltaX;
+
+                if (Math.abs(newRotY) < rotationLimitY + 0.2) {
+                    pivot.rotation.y = newRotY;
+                }
+                if (Math.abs(newRotX) < rotationLimitX) {
+                    pivot.rotation.x = newRotX;
+                }
+            }
+            prevMouse = { x: e.clientX, y: e.clientY };
+        });
+
+        function raycast(e) {
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2(
+                (e.clientX / window.innerWidth) * 2 - 1,
+                -(e.clientY / window.innerHeight) * 2 + 1
+            );
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(markers.map(m => m.mesh));
+
+            if (intersects.length > 0) {
+                const data = intersects[0].object.userData;
+                pointTitle.innerText = data.title;
+                pointDesc.innerText = data.desc;
+                infoPanel.classList.add('active');
+                
+                intersects[0].object.scale.set(2, 2, 2);
+                setTimeout(() => intersects[0].object.scale.set(1,1,1), 200);
+            } else {
+                infoPanel.classList.remove('active');
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        window.onload = init;
+    </script>
+</body>
+</html>
