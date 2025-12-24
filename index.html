@@ -1,234 +1,330 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>FAQ – EcoSavers</title>
-
-  <!-- Fuente -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thought Leaders 3D Slider - External Navigation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
     body {
       margin: 0;
       font-family: 'Inter', sans-serif;
-      background: #f6f3ef;
+      background: #f0f0ee;
+      color: #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Contenedor principal que envuelve todo (incluyendo flechas externas) */
+    .carousel-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 1400px; /* Ajustado para dar espacio a las flechas a los lados */
+      padding: 0 80px; /* Espacio para que las flechas respiren */
+    }
+
+    /* Contenedor con Perspectiva 3D */
+    .carousel-container {
+      width: 100%;
+      perspective: 2500px; 
+      position: relative;
+    }
+
+    .carousel-view {
+      position: relative;
+      width: 100%;
+      height: 600px;
+      transform-style: preserve-3d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .track {
+      position: relative;
+      width: 750px; /* Un poco más estrecho para que quepan bien las flechas fuera */
+      height: 450px;
+      transform-style: preserve-3d;
+    }
+
+    /* Estilo de la Tarjeta 3D */
+    .card {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: #fff;
+      border-radius: 32px;
+      padding: 40px;
+      box-sizing: border-box;
+      display: flex;
+      gap: 30px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+      backface-visibility: hidden;
+      transition: all 0.8s cubic-bezier(0.2, 1, 0.3, 1);
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate3d(0, 0, -1000px);
+    }
+
+    /* ESTADOS 3D PARA BUCLE INFINITO */
+    .card.active {
+      transform: translate3d(0, 0, 150px) rotateY(0deg);
+      opacity: 1;
+      z-index: 20;
+      filter: blur(0);
+      pointer-events: auto;
+    }
+
+    .card.prev {
+      transform: translate3d(-75%, 0, -350px) rotateY(30deg);
+      opacity: 0.6;
+      z-index: 10;
+      filter: blur(1.5px);
+      pointer-events: auto;
+    }
+
+    .card.next {
+      transform: translate3d(75%, 0, -350px) rotateY(-30deg);
+      opacity: 0.6;
+      z-index: 10;
+      filter: blur(1.5px);
+      pointer-events: auto;
+    }
+
+    /* Imagen y Badge */
+    .image-side {
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .image-side img {
+      width: 200px;
+      height: 320px;
+      object-fit: cover;
+      border-radius: 20px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+    }
+
+    .linkedin-badge {
+      position: absolute;
+      bottom: 15px;
+      right: 15px;
+      background: #22c55e;
       color: #000;
-    }
-
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 80px 20px;
-      text-align: center;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 6px 14px;
-      border-radius: 999px;
-      background: #e9e6e2;
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 24px;
-    }
-
-    h1 {
-      font-size: 48px;
       font-weight: 800;
-      margin: 0 0 16px;
-    }
-
-    .subtitle {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
       font-size: 18px;
-      color: #333;
-      max-width: 650px;
-      margin: 0 auto 60px;
-      line-height: 1.6;
     }
 
-    .faq {
+    /* Contenido */
+    .info-side {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
       text-align: left;
     }
 
-    .faq-item {
-      background: #fff;
-      border: 2px solid #000;
-      border-radius: 16px;
-      padding: 28px 32px;
-      margin-bottom: 20px;
-      cursor: pointer;
+    .info-side h2 {
+      margin: 0 0 10px 0;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -1px;
     }
 
-    .faq-header {
+    .info-side p {
+      font-size: 15px;
+      line-height: 1.5;
+      color: #444;
+      margin-bottom: 25px;
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: #22c55e;
+      padding: 12px 20px;
+      border-radius: 12px;
+      color: #000;
+      font-weight: 600;
+      text-decoration: none;
+      width: fit-content;
+      font-size: 14px;
+    }
+
+    /* Controles EXTERNOS a los lados */
+    .nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #111;
+      color: #fff;
+      border: none;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      cursor: pointer;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 20px;
+      justify-content: center;
+      font-size: 24px;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+      z-index: 100;
     }
 
-    .faq-question {
-      font-size: 20px;
-      font-weight: 700;
-      margin: 0;
+    .nav-btn:hover {
+      background: #333;
+      transform: translateY(-50%) scale(1.1);
     }
 
-    .icon {
-      font-size: 28px;
-      font-weight: 300;
-      transition: transform 0.4s ease;
-      user-select: none;
+    .nav-btn.left {
+      left: 10px;
     }
 
-    /* Animación suave */
-    .faq-answer {
-      display: grid;
-      grid-template-rows: 0fr;
-      transition:
-        grid-template-rows 0.7s cubic-bezier(0.25, 0.8, 0.25, 1),
-        opacity 0.4s ease;
-      opacity: 0;
+    .nav-btn.right {
+      right: 10px;
     }
 
-    .faq-answer-inner {
-      overflow: hidden;
-      padding-top: 20px;
-      font-size: 16px;
-      line-height: 1.6;
-      color: #333;
-    }
-
-    .faq-item.active .faq-answer {
-      grid-template-rows: 1fr;
-      opacity: 1;
-    }
-
-    .faq-item.active .icon {
-      transform: rotate(180deg);
+    /* Mobile */
+    @media (max-width: 900px) {
+      .carousel-wrapper { padding: 0 20px; flex-direction: column; }
+      .track { width: 90%; height: auto; }
+      .card { flex-direction: column; height: auto; padding: 25px; align-items: center; text-align: center; }
+      .image-side img { width: 100%; height: 200px; }
+      .info-side { text-align: center; }
+      .cta { margin: 0 auto; }
+      
+      .nav-btn {
+        top: auto;
+        bottom: 20px;
+        transform: none;
+      }
+      .nav-btn:hover { transform: scale(1.1); }
+      .nav-btn.left { left: 30%; transform: translateX(-50%); }
+      .nav-btn.right { right: 30%; transform: translateX(50%); }
     }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <div class="badge">FAQ</div>
-
-    <h1>Preguntas Frecuentes</h1>
-
-    <p class="subtitle">
-      Todo sobre EcoSavers: localiza puntos de reciclaje RAEE en Fusagasugá,
-      aprende a reciclar correctamente y ayuda a mejorar la ciudad.
-    </p>
-
-    <div class="faq">
-
-      <div class="faq-item active">
-        <div class="faq-header">
-          <h3 class="faq-question">
-            ¿Qué es EcoSavers?
-          </h3>
-          <span class="icon">−</span>
-        </div>
-        <div class="faq-answer">
-          <div class="faq-answer-inner">
-            Es una página web para localizar puntos de reciclaje RAEE
-            (Residuos de Aparatos Eléctricos y Electrónicos) en Fusagasugá.
-            Incluye un mapa interactivo, consejos para reciclar y un
-            formulario para sugerir nuevos puntos.
-          </div>
+  <div class="carousel-wrapper">
+    <button class="nav-btn left" id="prevBtn" aria-label="Anterior">←</button>
+    
+    <div class="carousel-container">
+      <div class="carousel-view">
+        <div class="track" id="track">
+          <!-- Generado por JS -->
         </div>
       </div>
-
-      <div class="faq-item">
-        <div class="faq-header">
-          <h3 class="faq-question">
-            ¿Cómo busco un punto de reciclaje?
-          </h3>
-          <span class="icon">+</span>
-        </div>
-        <div class="faq-answer">
-          <div class="faq-answer-inner">
-            En la página <strong>Mapa</strong>, busca tu ubicación o barrio.
-            Verás puntos cercanos con su dirección, los electrónicos que
-            aceptan y los horarios de atención.
-          </div>
-        </div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-header">
-          <h3 class="faq-question">
-            ¿Dónde veo consejos para reciclar?
-          </h3>
-          <span class="icon">+</span>
-        </div>
-        <div class="faq-answer">
-          <div class="faq-answer-inner">
-            Ve a la sección <strong>Educación</strong>. Allí encontrarás
-            artículos y videos sobre reciclaje, filtrados por temas como
-            baterías, computadores y otros dispositivos electrónicos.
-          </div>
-        </div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-header">
-          <h3 class="faq-question">
-            ¿Qué puedo hacer como usuario normal?
-          </h3>
-          <span class="icon">+</span>
-        </div>
-        <div class="faq-answer">
-          <div class="faq-answer-inner">
-            Puedes registrarte, consultar el mapa de puntos de reciclaje,
-            acceder al contenido educativo y sugerir nuevos puntos para
-            mejorar la red de reciclaje en la ciudad.
-          </div>
-        </div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-header">
-          <h3 class="faq-question">
-            ¿Cómo pido ayuda o reporto un problema?
-          </h3>
-          <span class="icon">+</span>
-        </div>
-        <div class="faq-answer">
-          <div class="faq-answer-inner">
-            Envía un correo a <strong>soporte@ecosavers.com</strong> o llama al
-            <strong>+57 (3XX) XXX XX XX</strong>. Puedes reportar problemas,
-            pedir ayuda o solicitar el desbloqueo de tu cuenta si fue bloqueada
-            por errores de inicio de sesión.
-          </div>
-        </div>
-      </div>
-
     </div>
+
+    <button class="nav-btn right" id="nextBtn" aria-label="Siguiente">→</button>
   </div>
 
   <script>
-    document.querySelectorAll('.faq-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const isActive = item.classList.contains('active');
+    const people = [
+      {
+        name: "Nico Bancila",
+        text: "Estratega senior en Demand Generation con más de 10 años de experiencia en B2B y B2C para industrias SaaS, servicios y manufactura.",
+        img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=600&h=800&fit=crop"
+      },
+      {
+        name: "Carlos Méndez",
+        text: "Líder de Estrategia UX ayudando a empresas a escalar productos digitales mediante sistemas de diseño robustos e investigación profunda.",
+        img: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600&h=800&fit=crop"
+      },
+      {
+        name: "Laura Gómez",
+        text: "Narradora de marcas y estratega de contenido enfocada en startups tecnológicas de alto crecimiento y entornos SaaS internacionales.",
+        img: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=600&h=800&fit=crop"
+      },
+      {
+        name: "Sofia Yang",
+        text: "Especialista en cadenas de suministro sostenibles y logística verde para corporaciones globales, integrando tecnología y ecología.",
+        img: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&h=800&fit=crop"
+      }
+    ];
 
-        document.querySelectorAll('.faq-item').forEach(i => {
-          i.classList.remove('active');
-          i.querySelector('.icon').textContent = '+';
-        });
+    const track = document.getElementById("track");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    let currentIndex = 0;
+    const total = people.length;
 
-        if (!isActive) {
-          item.classList.add('active');
-          item.querySelector('.icon').textContent = '−';
+    function renderCards() {
+      track.innerHTML = people.map((p, i) => `
+        <div class="card" data-index="${i}" onclick="goToSlide(${i})">
+          <div class="image-side">
+            <img src="${p.img}" alt="${p.name}">
+            <a href="#" class="linkedin-badge">in</a>
+          </div>
+          <div class="info-side">
+            <h2>${p.name}</h2>
+            <p>${p.text}</p>
+            <a href="#" class="cta">Seguir en LinkedIn ↗</a>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function updateCarousel() {
+      const cards = document.querySelectorAll('.card');
+      
+      cards.forEach((card, i) => {
+        card.className = 'card';
+        
+        if (i === currentIndex) {
+          card.classList.add('active');
+        } else if (i === (currentIndex - 1 + total) % total) {
+          card.classList.add('prev');
+        } else if (i === (currentIndex + 1) % total) {
+          card.classList.add('next');
+        } else {
+          card.classList.add('hidden');
         }
       });
+    }
+
+    function goToSlide(i) {
+      currentIndex = i;
+      updateCarousel();
+    }
+
+    nextBtn.onclick = () => {
+      currentIndex = (currentIndex + 1) % total;
+      updateCarousel();
+    };
+
+    prevBtn.onclick = () => {
+      currentIndex = (currentIndex - 1 + total) % total;
+      updateCarousel();
+    };
+
+    renderCards();
+    updateCarousel();
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') prevBtn.click();
+      if (e.key === 'ArrowRight') nextBtn.click();
     });
   </script>
-
 </body>
 </html>
-
