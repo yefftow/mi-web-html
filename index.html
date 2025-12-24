@@ -1,290 +1,234 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoSavers - Estadísticas RAEE</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --verde-claro: #bfecac;
-            --naranja: #ffcd80;
-            --verde-oscuro: #466646;
-            --verde-medio: #587853;
-            --amarillo: #ffff97;
-            --blanco: #ffffff;
-            --gris-texto: #333;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FAQ – EcoSavers</title>
 
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #fcfdfc;
-            color: var(--verde-oscuro);
-            margin: 0;
-            padding: 20px;
-        }
+  <!-- Fuente -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-        .header-section {
-            text-align: center;
-            margin-bottom: 30px;
-        }
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: #f6f3ef;
+      color: #000;
+    }
 
-        .chart-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-            gap: 25px;
-        }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 80px 20px;
+      text-align: center;
+    }
 
-        .chart-card {
-            background: var(--blanco);
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(70, 102, 70, 0.08);
-            border: 1px solid var(--verde-claro);
-            transition: transform 0.3s ease;
-            display: flex;
-            flex-direction: column;
-        }
+    .badge {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: #e9e6e2;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
 
-        .chart-card:hover {
-            transform: translateY(-5px);
-        }
+    h1 {
+      font-size: 48px;
+      font-weight: 800;
+      margin: 0 0 16px;
+    }
 
-        .full-width {
-            grid-column: 1 / -1;
-        }
+    .subtitle {
+      font-size: 18px;
+      color: #333;
+      max-width: 650px;
+      margin: 0 auto 60px;
+      line-height: 1.6;
+    }
 
-        h2 {
-            font-size: 1.1rem;
-            margin-bottom: 20px;
-            color: var(--verde-oscuro);
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border-bottom: 2px solid var(--amarillo);
-            padding-bottom: 10px;
-            display: inline-block;
-            align-self: center;
-        }
+    .faq {
+      text-align: left;
+    }
 
-        .chart-container {
-            position: relative;
-            height: 320px;
-            width: 100%;
-        }
+    .faq-item {
+      background: #fff;
+      border: 2px solid #000;
+      border-radius: 16px;
+      padding: 28px 32px;
+      margin-bottom: 20px;
+      cursor: pointer;
+    }
 
-        .footer-info {
-            margin-top: 15px;
-            font-size: 0.85rem;
-            color: var(--verde-medio);
-            text-align: center;
-            font-style: italic;
-            line-height: 1.4;
-        }
+    .faq-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
 
-        .fuente {
-            display: block;
-            text-align: right;
-            font-size: 0.7rem;
-            margin-top: 10px;
-            color: #999;
-        }
+    .faq-question {
+      font-size: 20px;
+      font-weight: 700;
+      margin: 0;
+    }
 
-        @media (max-width: 600px) {
-            .chart-grid { grid-template-columns: 1fr; }
-        }
-    </style>
+    .icon {
+      font-size: 28px;
+      font-weight: 300;
+      transition: transform 0.4s ease;
+      user-select: none;
+    }
+
+    /* Animación suave */
+    .faq-answer {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition:
+        grid-template-rows 0.7s cubic-bezier(0.25, 0.8, 0.25, 1),
+        opacity 0.4s ease;
+      opacity: 0;
+    }
+
+    .faq-answer-inner {
+      overflow: hidden;
+      padding-top: 20px;
+      font-size: 16px;
+      line-height: 1.6;
+      color: #333;
+    }
+
+    .faq-item.active .faq-answer {
+      grid-template-rows: 1fr;
+      opacity: 1;
+    }
+
+    .faq-item.active .icon {
+      transform: rotate(180deg);
+    }
+  </style>
 </head>
 <body>
 
-<div class="container">
-    <header class="header-section">
-        <h1 style="color: var(--verde-oscuro)">Impacto EcoSavers</h1>
-        <p style="color: var(--verde-medio)">Estadísticas de Generación y Manejo de RAEE</p>
-    </header>
+  <div class="container">
+    <div class="badge">FAQ</div>
 
-    <div class="chart-grid">
-        <!-- 1. GLOBAL (CURVA DE CRECIMIENTO) -->
-        <div class="chart-card full-width">
-            <h2>Curva de Crecimiento Global (2014-2030)</h2>
-            <div class="chart-container">
-                <canvas id="growthChart"></canvas>
-            </div>
-            <p class="footer-info">Proyección de generación en Millones de toneladas (Mt). El área refleja el volumen acumulado de residuos.</p>
-            <span class="fuente">Fuente: Forti et al. (2020)</span>
-        </div>
+    <h1>Preguntas Frecuentes</h1>
 
-        <!-- 2. LATINOAMÉRICA (BARRAS VERTICALES CON ESTILO) -->
-        <div class="chart-card">
-            <h2>Generación por País en Latam (kt)</h2>
-            <div class="chart-container">
-                <canvas id="latamBars"></canvas>
-            </div>
-            <p class="footer-info">Comparativa regional de los principales generadores de basura electrónica.</p>
-        </div>
+    <p class="subtitle">
+      Todo sobre EcoSavers: localiza puntos de reciclaje RAEE en Fusagasugá,
+      aprende a reciclar correctamente y ayuda a mejorar la ciudad.
+    </p>
 
-        <!-- 3. BOGOTÁ (BARRAS DE CONTRASTE) -->
-        <div class="chart-card">
-            <h2>Bogotá 2023: Generación vs Reciclaje</h2>
-            <div class="chart-container">
-                <canvas id="bogotaBars"></canvas>
-            </div>
-            <p class="footer-info" style="color: #d9534f; font-weight: bold;">¡Alerta! Solo el 0.6% es manejado por recicladores informales.</p>
-        </div>
+    <div class="faq">
 
-        <!-- 4. FUSAGASUGÁ (BARRAS HORIZONTALES LARGAS) -->
-        <div class="chart-card full-width">
-            <h2>Fusagasugá 2024: El desafío local</h2>
-            <div class="chart-container">
-                <canvas id="fusaHorizontal"></canvas>
-            </div>
-            <p class="footer-info">Diferencia abismal entre lo que se bota y lo que se recupera adecuadamente.</p>
-            <span class="fuente">Fuente: Alcaldía de Fusagasugá (2024)</span>
+      <div class="faq-item active">
+        <div class="faq-header">
+          <h3 class="faq-question">
+            ¿Qué es EcoSavers?
+          </h3>
+          <span class="icon">−</span>
         </div>
+        <div class="faq-answer">
+          <div class="faq-answer-inner">
+            Es una página web para localizar puntos de reciclaje RAEE
+            (Residuos de Aparatos Eléctricos y Electrónicos) en Fusagasugá.
+            Incluye un mapa interactivo, consejos para reciclar y un
+            formulario para sugerir nuevos puntos.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-header">
+          <h3 class="faq-question">
+            ¿Cómo busco un punto de reciclaje?
+          </h3>
+          <span class="icon">+</span>
+        </div>
+        <div class="faq-answer">
+          <div class="faq-answer-inner">
+            En la página <strong>Mapa</strong>, busca tu ubicación o barrio.
+            Verás puntos cercanos con su dirección, los electrónicos que
+            aceptan y los horarios de atención.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-header">
+          <h3 class="faq-question">
+            ¿Dónde veo consejos para reciclar?
+          </h3>
+          <span class="icon">+</span>
+        </div>
+        <div class="faq-answer">
+          <div class="faq-answer-inner">
+            Ve a la sección <strong>Educación</strong>. Allí encontrarás
+            artículos y videos sobre reciclaje, filtrados por temas como
+            baterías, computadores y otros dispositivos electrónicos.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-header">
+          <h3 class="faq-question">
+            ¿Qué puedo hacer como usuario normal?
+          </h3>
+          <span class="icon">+</span>
+        </div>
+        <div class="faq-answer">
+          <div class="faq-answer-inner">
+            Puedes registrarte, consultar el mapa de puntos de reciclaje,
+            acceder al contenido educativo y sugerir nuevos puntos para
+            mejorar la red de reciclaje en la ciudad.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-header">
+          <h3 class="faq-question">
+            ¿Cómo pido ayuda o reporto un problema?
+          </h3>
+          <span class="icon">+</span>
+        </div>
+        <div class="faq-answer">
+          <div class="faq-answer-inner">
+            Envía un correo a <strong>soporte@ecosavers.com</strong> o llama al
+            <strong>+57 (3XX) XXX XX XX</strong>. Puedes reportar problemas,
+            pedir ayuda o solicitar el desbloqueo de tu cuenta si fue bloqueada
+            por errores de inicio de sesión.
+          </div>
+        </div>
+      </div>
+
     </div>
-</div>
+  </div>
 
-<script>
-    const COLORS = {
-        claro: '#bfecac',
-        naranja: '#ffcd80',
-        oscuro: '#466646',
-        medio: '#587853',
-        amarillo: '#ffff97',
-        blanco: '#ffffff'
-    };
+  <script>
+    document.querySelectorAll('.faq-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const isActive = item.classList.contains('active');
 
-    // Configuración general
-    Chart.defaults.color = COLORS.oscuro;
-    Chart.defaults.font.family = "'Segoe UI', sans-serif";
+        document.querySelectorAll('.faq-item').forEach(i => {
+          i.classList.remove('active');
+          i.querySelector('.icon').textContent = '+';
+        });
 
-    // 1. GLOBAL (Área de Crecimiento)
-    new Chart(document.getElementById('growthChart'), {
-        type: 'line',
-        data: {
-            labels: ['2014', '2016', '2018', '2020', '2022', '2024', '2026', '2028', '2030'],
-            datasets: [{
-                label: 'Generación (Mt)',
-                data: [44.7, 48.2, 51.8, 55.5, 59.4, 63.3, 67.2, 71.7, 74.7],
-                fill: true,
-                backgroundColor: 'rgba(191, 236, 172, 0.4)',
-                borderColor: COLORS.oscuro,
-                borderWidth: 3,
-                tension: 0.4, // Suavizado de curva
-                pointBackgroundColor: COLORS.naranja,
-                pointRadius: 6,
-                pointHoverRadius: 8
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
-                x: { grid: { display: false } }
-            }
+        if (!isActive) {
+          item.classList.add('active');
+          item.querySelector('.icon').textContent = '−';
         }
+      });
     });
-
-    // 2. LATAM (Barras Verticales)
-    new Chart(document.getElementById('latamBars'), {
-        type: 'bar',
-        data: {
-            labels: ['Brasil', 'México', 'Arg', 'Col', 'Ven', 'Perú', 'Chile'],
-            datasets: [{
-                data: [2435, 1220, 465, 318, 300, 204, 185],
-                backgroundColor: COLORS.medio,
-                borderRadius: 10,
-                hoverBackgroundColor: COLORS.naranja
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true },
-                x: { grid: { display: false } }
-            }
-        }
-    });
-
-    // 3. BOGOTÁ (Barras de Contraste)
-    new Chart(document.getElementById('bogotaBars'), {
-        type: 'bar',
-        data: {
-            labels: ['Total Generado', 'Reciclaje Informal'],
-            datasets: [{
-                data: [23000, 135],
-                backgroundColor: [COLORS.oscuro, COLORS.naranja],
-                borderRadius: 10
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
-    });
-
-    // 4. FUSAGASUGÁ (Barras Horizontales)
-    new Chart(document.getElementById('fusaHorizontal'), {
-        type: 'bar',
-        data: {
-            labels: ['Total Residuos', 'Recolección Especial'],
-            datasets: [{
-                axis: 'y',
-                data: [46000000, 4260],
-                backgroundColor: [COLORS.medio, COLORS.amarillo],
-                borderRadius: 15,
-                barThickness: 50
-            }]
-        },
-        options: {
-            indexAxis: 'y',
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { 
-                legend: { display: false }
-            },
-            scales: {
-                x: {
-                    type: 'logarithmic',
-                    ticks: {
-                        callback: (v) => v >= 1000000 ? (v/1000000) + 'M' : (v >= 1000 ? (v/1000) + 'k' : v)
-                    }
-                }
-            }
-        },
-        plugins: [{
-            id: 'labelsPlugin',
-            afterDatasetsDraw(chart) {
-                const {ctx, data} = chart;
-                ctx.save();
-                ctx.font = 'bold 14px sans-serif';
-                
-                chart.getDatasetMeta(0).data.forEach((bar, index) => {
-                    const val = data.datasets[0].data[index];
-                    const text = val >= 1000000 ? (val/1000000).toFixed(0) + 'M kg' : (val/1000).toFixed(1) + 'k kg';
-                    
-                    ctx.fillStyle = index === 1 ? COLORS.oscuro : COLORS.blanco;
-                    ctx.textAlign = 'right';
-                    ctx.fillText(text, bar.x - 15, bar.y + 5);
-                });
-                ctx.restore();
-            }
-        }]
-    });
-</script>
+  </script>
 
 </body>
 </html>
+
